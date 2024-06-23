@@ -1,12 +1,13 @@
 from django.utils.datetime_safe import datetime
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from shared.utility import send_email
-from .serializers import SignUpSerializer
+from .serializers import SignUpSerializer, ChangeUserInformaion
 from .models import User, DONE, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
 
 
@@ -80,3 +81,22 @@ class GetNewVerification(APIView):
                 'message':'Kodingiz hali ishtalish uchun yaroqli. Biroz kuting!',
             }
             raise ValidationError(data)
+
+class ChangeUserInformationView(UpdateAPIView):
+    permission_classes = [IsAuthenticated,]
+    serializer_class = ChangeUserInformaion
+    http_method_names = ['put', 'patch', 'delete']
+
+
+    def get_object(self):
+        return self.request.user
+
+
+    def update(self, request, *args, **kwargs):
+        super(ChangeUserInformationView, self).update(request, *args, **kwargs)
+        data={
+            'success': True,
+            'messege':"User information updated",
+            'auth_status': self.request.user.auth_status,
+        }
+        return Response(data,status=200)
