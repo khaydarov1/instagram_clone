@@ -370,7 +370,20 @@ class ChangeUserInformaion(serializers.Serializer):
         if validated_data.get("password"):
             instance.set_password(validated_data.get('password'))
 
-        if instance.auth_status==CODE_VERIFIED:
-            instance.auth_status=DONE
+        if instance.auth_status == CODE_VERIFIED:
+            instance.auth_status = DONE
         instance.save()
+        return instance
+
+
+class ChangeUserPhotoSerializer(serializers.Serializer):
+    photo = serializers.ImageField(
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])])
+
+    def update(self, instance, validated_data):
+        photo = validated_data.get('photo')
+        if photo:
+            instance.photo=photo
+            instance.auth_status=PHOTO_DONE
+            instance.save()
         return instance
