@@ -8,7 +8,6 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from shared.utility import check_email_or_phone, send_email, send_phone_code, check_user_type
 from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_DONE
-from rest_framework import exceptions
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
@@ -208,7 +207,7 @@ class LoginSerializer(TokenObtainPairSerializer):
             raise ValidationError(
                 {
                     'success': False,
-                    'message': "Sorry, login or password you entered is incorrect. Please check and trg again!"
+                    'message': "Sorry, login or password you entered is incorrect. Please check and try again!"
                 }
             )
 
@@ -297,44 +296,6 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         instance.set_password(password)
         return super(ResetPasswordSerializer, self).update(instance, validated_data)
-
-
-class ChangeUserInformation(serializers.Serializer):
-    first_name = serializers.CharField(write_only=True, required=True)
-    last_name = serializers.CharField(write_only=True, required=True)
-    username = serializers.CharField(write_only=True, required=True)
-    password = serializers.CharField(write_only=True, required=True)
-    confirm_password = serializers.CharField(write_only=True, required=True)
-
-    def validate(self, data):
-        password = data.get('password', None)
-        confirm_password = data.get('confirm_password', None)
-        if password != confirm_password:
-            raise ValidationError({
-                'message': "Parolingiz va tasdiqlsh parolingiz bir-biriga mos emas"
-
-            })
-        if password:
-            validate_password(password)
-            validate_password(confirm_password)
-        return data
-
-    def validate_username(self, username):
-        if len(username) < 5 or len(username) > 35:
-            raise ValidationError({
-                'message': 'username must be between 5 and 35 characters'
-            })
-
-    photo = serializers.ImageField(
-        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])])
-
-    def update(self, instance, validated_data):
-        photo = validated_data.get('photo')
-        if photo:
-            instance.photo = photo
-            instance.auth_status = PHOTO_DONE
-            instance.save()
-        return instance
 
 
 class ChangeUserInformaion(serializers.Serializer):
