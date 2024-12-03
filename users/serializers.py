@@ -325,6 +325,17 @@ class ChangeUserInformation(serializers.Serializer):
                 'message': 'username must be between 5 and 35 characters'
             })
 
+    photo = serializers.ImageField(
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])])
+
+    def update(self, instance, validated_data):
+        photo = validated_data.get('photo')
+        if photo:
+            instance.photo = photo
+            instance.auth_status = PHOTO_DONE
+            instance.save()
+        return instance
+
 
 class ChangeUserInformaion(serializers.Serializer):
     first_name = serializers.CharField(write_only=True, required=True)
@@ -373,17 +384,4 @@ class ChangeUserInformaion(serializers.Serializer):
         if instance.auth_status == CODE_VERIFIED:
             instance.auth_status = DONE
         instance.save()
-        return instance
-
-
-class ChangeUserPhotoSerializer(serializers.Serializer):
-    photo = serializers.ImageField(
-        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'heic'])])
-
-    def update(self, instance, validated_data):
-        photo = validated_data.get('photo')
-        if photo:
-            instance.photo=photo
-            instance.auth_status=PHOTO_DONE
-            instance.save()
         return instance
