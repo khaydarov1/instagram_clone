@@ -1,4 +1,4 @@
-from django.utils.datetime_safe import datetime
+from datetime import datetime
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
