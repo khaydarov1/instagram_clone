@@ -1,13 +1,14 @@
-from django.utils.datetime_safe import datetime
+from datetime import datetime
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from shared.utility import send_email
-from .serializers import SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer
+from .serializers import SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer, LoginSerializer
 from .models import User, DONE, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
 
 
@@ -58,11 +59,11 @@ class GetNewVerification(APIView):
         if user.auth_type == VIA_EMAIL:
             code = user.create_verify_code(VIA_EMAIL)
             send_email(user.email, code)
-        elif user.auth_type==VIA_PHONE:
+        elif user.auth_type == VIA_PHONE:
             code = user.create_verify_code(VIA_PHONE)
             send_email(user.phone_number, code)
         else:
-            data={
+            data = {
                 'message': 'Invalid auth type',
             }
             raise ValidationError(data)
@@ -71,38 +72,36 @@ class GetNewVerification(APIView):
             'message': "Tasdiqlash kodingiz qaytadan jo'natildi",
         })
 
-
-
     @staticmethod
     def check_verificotion(user):
         verifies = user.verify_codes.filter(expiration_time__gte=datetime.now(), is_confirmed=False)
         if verifies.exists():
-            data={
-                'message':'Kodingiz hali ishtalish uchun yaroqli. Biroz kuting!',
+            data = {
+                'message': 'Kodingiz hali ishtalish uchun yaroqli. Biroz kuting!',
             }
             raise ValidationError(data)
 
+
 class ChangeUserInformationView(UpdateAPIView):
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
     serializer_class = ChangeUserInformaion
     http_method_names = ['put', 'patch', 'delete']
-
 
     def get_object(self):
         return self.request.user
 
-
     def update(self, request, *args, **kwargs):
         super(ChangeUserInformationView, self).update(request, *args, **kwargs)
-        data={
+        data = {
             'success': True,
-            'messege':"User information updated",
+            'messege': "User information updated",
             'auth_status': self.request.user.auth_status,
         }
-        return Response(data,status=200)
+        return Response(data, status=200)
+
 
 class ChangeUserPhotoView(APIView):
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
     serializer_class = ChangeUserPhotoSerializer
 
     def put(self, request, *args, **kwargs):
@@ -112,6 +111,10 @@ class ChangeUserPhotoView(APIView):
             serializer.update(user, serializer.validated_data)
             return Response({
                 'success': True,
-                'message':"User information updated",
+                'message': "User information updated",
             }, status=200)
         return Response(serializer.errors, status=400)
+
+
+class LoginView(TokenObtainPairView):
+    serializer_class = LoginSerializer
