@@ -1,16 +1,16 @@
 from datetime import datetime
 from rest_framework import generics, permissions
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.generics import UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView, TokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView
-
+from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 from shared.utility import send_email
-from .serializers import LoginRefreshSerializer, SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer, LoginSerializer, TokenRefreshSerializer
+from .serializers import LoginRefreshSerializer, LogoutSerializer, SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer, LoginSerializer, TokenRefreshSerializer
 from .models import User, DONE, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -121,3 +121,22 @@ class LoginView(TokenObtainPairView):
 
 class LoginRefreshView(TokenRefreshView):
     serializer_class=LoginRefreshSerializer
+    
+class LogOutView(APIView):
+    serializer_class=LogoutSerializer
+    permission_classes=[IsAuthenticated,]
+    
+    def post(self,request,*args, **kwargs):
+        serializer=self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            refresh_token=self.request.data['refresh']
+            token=RefreshToken(refresh_token)
+            token.blacklist()
+            data={
+                'success': True,
+                'message': 'Loggout'                
+            }
+            return Response(data, status=205)
+        except TokenError:
+            return Response(status=400)
