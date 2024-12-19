@@ -2,13 +2,13 @@ from datetime import datetime
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView, TokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
-from shared.utility import send_email
-from .serializers import LoginRefreshSerializer, LogoutSerializer, SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer, LoginSerializer, TokenRefreshSerializer
+from shared.utility import send_email,check_email_or_phone
+from .serializers import LoginRefreshSerializer, LogoutSerializer, SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer, LoginSerializer,ForgotPasswordSerializer, TokenRefreshSerializer
 from .models import User, DONE, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
 
 
@@ -140,3 +140,32 @@ class LogOutView(APIView):
             return Response(data, status=205)
         except TokenError:
             return Response(status=400)
+        
+        
+class ForgotPasswodView(APIView):
+    permission_classes=[AllowAny, ]
+    serializer_class=ForgotPasswordSerializer
+    
+    def post(self,request,*args,**kwargs):
+        serializer=self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        email_or_phone=serializer.validated_data.get('email_or_phone')
+        user=send_email.validated_data.get('user')
+        
+        if check_email_or_phone(email_or_phone)=='phone':
+            code= user.create_verify_code(VIA_PHONE)
+            send_email(email_or_phone, code)
+            
+        elif check_email_or_phone(email_or_phone)=='email':
+            code= user.create_verify_code(VIA_EMAIL)
+            send_email(email_or_phone, code)
+            
+        return Response({
+                "success":True,
+                'message':"Tasdiqlash kodi mavaffiqiyatli yuborldi",
+                "access": user.token()['access'],
+                'refresh':user.token()['refresh_token'],
+                "user_status":user.auth_status,
+            }, status=200)
+        
+            
