@@ -1,16 +1,18 @@
 from datetime import datetime
 from rest_framework import generics, permissions
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView, TokenRefreshView
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 from shared.utility import send_email,check_email_or_phone
-from .serializers import LoginRefreshSerializer, LogoutSerializer, SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer, LoginSerializer,ForgotPasswordSerializer, TokenRefreshSerializer
+from .serializers import LoginRefreshSerializer, LogoutSerializer, \
+    SignUpSerializer, ChangeUserInformaion, ChangeUserPhotoSerializer,\
+        LoginSerializer,ForgotPasswordSerializer, ResetPasswordSerializer
 from .models import User, DONE, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -167,5 +169,24 @@ class ForgotPasswodView(APIView):
                 'refresh':user.token()['refresh_token'],
                 "user_status":user.auth_status,
             }, status=200)
+        
+class ResetPasswordView(UpdateAPIView):
+    permission_classes=[IsAuthenticated,]
+    serializer_class=ResetPasswordSerializer
+    http_method_names=['put', 'patch']
+    
+    def update(self,request,*args,**kwargs):
+        response=super(ResetPasswordView,self).update(request,*args,**kwargs)
+        try:
+            user=User.objects.get(id=response.data.get['id'])
+        except ObjectDoesNotExist as e:
+            raise NotFound(detail='User not found')
+              
+        return Response({
+            "success":True,
+            'message':"Parol muvaffaqiyatli tiklandi",
+            'access':user.token()['access'],
+            'refresh':user.token()['refresh_token'],
+        }, status=200)
         
             
