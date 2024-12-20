@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from post.models import Post, PostLike
+from post.models import CommentLike, Post, PostComment, PostLike
 from users.models import User
 
 class UserSerializers(serializers.ModelSerializer):
@@ -39,3 +39,32 @@ class PostSerializers(serializers.ModelSerializer):
                 return False
     
         return False
+    
+    
+class CommentSerializer(serializers.ModelSerializer):
+    id=serializers.UUIDField(read_only=True)
+    author=UserSerializers(read_only=True)
+    replies=serializers.SerializerMethodField('get_replies')
+    me_liked=serializers.SerializerMethodField('get_me_liked')
+    likes_count=serializers.SerializerMethodField('get_likes_count')
+    
+    class Meta:
+        model = PostComment
+        fields = ('id', 'author', 'comment',"parent", 'created_time','replies')
+        
+    def get_replies(self,obj):
+        if obj.child.exists():
+            serializers=self.__class__(obj.child.all(),many=True,context=self.context)
+            return serializers.data
+        else:
+            return None
+        
+    
+    def get_me_liked(self,obj):
+        user=self.context.get('request').user
+        if user.is_authenticated:
+            return obj.likes.filter(author=user).exists()
+        else:
+            return False        
+    def get_likes_count(self,obj):
+        return obj.likes.count()
