@@ -7,7 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 from rest_framework_simplejwt.tokens import AccessToken
 
 from shared.utility import check_email_or_phone, send_email, send_phone_code, check_user_type
-from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_DONE
+from .models import User, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_DONE
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
@@ -73,7 +73,8 @@ class SignUpSerializer(serializers.ModelSerializer):
 
         return data
 
-    def validate_email_phone_number(self, value):
+    @staticmethod
+    def validate_email_phone_number(value):
         value = value.lower()
         if value and User.objects.filter(email=value).exists():
             data = {
@@ -119,7 +120,8 @@ class ChangeUserInformation(serializers.Serializer):
 
         return data
 
-    def validate_username(self, username):
+    @staticmethod
+    def validate_username(username):
         if len(username) < 5 or len(username) > 30:
             raise ValidationError(
                 {
@@ -220,7 +222,8 @@ class LoginSerializer(TokenObtainPairSerializer):
         data['full_name'] = self.user.full_name
         return data
 
-    def get_user(self, **kwargs):
+    @staticmethod
+    def get_user(**kwargs):
         users = User.objects.filter(**kwargs)
         if not users.exists():
             raise ValidationError(
@@ -318,7 +321,8 @@ class ChangeUserInformaion(serializers.Serializer):
 
         return data
 
-    def validate_username(self, username):
+    @staticmethod
+    def validate_username(username):
         if len(username) < 5 or len(username) > 35:
             raise ValidationError({
                 'message': 'username must be between 5 and 35 characters'
