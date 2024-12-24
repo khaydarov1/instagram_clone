@@ -16,7 +16,7 @@ class Post(BaseModel):
         db_table = 'posts'
         verbose_name = 'post'
         verbose_name_plural = 'posts'
-        ordering = ['-created_at']
+        ordering = ['-created_time']
 
 
 class PostComment(BaseModel):
@@ -30,6 +30,9 @@ class PostComment(BaseModel):
         null=True,
         blank=True
     )
+    
+    def __str__(self):
+        return self.author
 
 
 class PostLike(BaseModel):
@@ -38,7 +41,8 @@ class PostLike(BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['author', 'post'])
+            models.UniqueConstraint(fields=['author', 'post'],
+                                    name='unique_post_like')
         ]
 
 
@@ -48,5 +52,6 @@ class CommentLike(BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['author', 'comment'])
+            models.UniqueConstraint(fields=['author', 'comment'],
+                                    name='unique_comment_like')
         ]
