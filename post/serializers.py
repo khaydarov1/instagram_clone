@@ -22,7 +22,7 @@ class PostSerializers(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ('id', 'author', 'image', 'caption', 'created_at','post_likes_count', 'post_comments_count', 'me_liked')
-
+        exrta_kwargs = {'image': {'required': False}}
     @staticmethod
     def get_post_likes_count(obj):
         return obj.likes.count()
