@@ -1,34 +1,58 @@
 # Instagram Clone
 
-This is a clone of Instagram built using Python.
+This is a simple Instagram clone built with Django and Django REST framework.
 
 ## Features
 
 - User authentication
-- Photo uploads
-- Liking photos
-- Following users
+- Post creation and management
+- Commenting on posts
+- Liking posts and comments
+- Pagination for posts
 
-## Technologies Used
-
-- Python
-- HTML
-
-## Setup
+## Installation
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/khaydarov1/instagram_clone.git
+    git clone https://github.com/yourusername/instagram_clone.git
     ```
+
 2. Navigate to the project directory:
     ```sh
     cd instagram_clone
     ```
-3. Install dependencies:
+
+3. Create a virtual environment:
+    ```sh
+    python -m venv .venv
+    ```
+
+4. Activate the virtual environment:
+    - On Windows:
+        ```sh
+        .venv\Scripts\activate
+        ```
+    - On macOS/Linux:
+        ```sh
+        source .venv/bin/activate
+        ```
+
+5. Install dependencies:
     ```sh
     pip install -r requirements.txt
     ```
-4. Run the application:
+
+6. Apply migrations:
+    ```sh
+    python manage.py migrate
+    ```
+
+7. Create a superuser:
+    ```sh
+    python manage.py createsuperuser
+    ```
+
+8. Run the application:
     ```sh
     python manage.py runserver
     ```
@@ -39,4 +63,4 @@ Feel free to fork this repository and submit pull requests.
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the MIT License.
