@@ -170,6 +170,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         super(LoginSerializer, self).__init__(*args, **kwargs)
         self.fields['userinput'] = serializers.CharField(required=True)
         self.fields['username'] = serializers.CharField(required=False, read_only=True)
+        self.user = None  # Define the user attribute in the __init__ method
 
     def auth_validate(self, data):
         user_input = data.get('userinput')  # email, phone_number, username
@@ -212,6 +213,26 @@ class LoginSerializer(TokenObtainPairSerializer):
                     'message': "Sorry, login or password you entered is incorrect. Please check and try again!"
                 }
             )
+
+    def validate(self, data):
+        self.auth_validate(data)
+        if self.user.auth_status not in [DONE, PHOTO_DONE]:
+            raise PermissionDenied("Siz login qila olmaysiz. Ruxsatingiz yoq")
+        data = self.user.token()
+        data['auth_status'] = self.user.auth_status
+        data['full_name'] = self.user.full_name
+        return data
+
+    @staticmethod
+    def get_user(**kwargs):
+        users = User.objects.filter(**kwargs)
+        if not users.exists():
+            raise ValidationError(
+                {
+                    "message": "No active account found"
+                }
+            )
+        return users.first()
 
     def validate(self, data):
         self.auth_validate(data)

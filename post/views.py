@@ -1,15 +1,15 @@
 from .models import CommentLike, Post, PostComment, PostLike
 from rest_framework.response import Response
 from .serializers import PostSerializers, CommentSerializer, PostLikeSerializer, CommentLikeSerializer
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
-from shared.custom_pagination import CustomPagination
+from shared.custom_pagination import CostomPagination
 
 
 class PostListAPIView(generics.ListAPIView):
     serializer_class = PostSerializers
     permission_classes = [AllowAny, ]
-    pagination_class = CustomPagination
+    pagination_class = CostomPagination
 
     def get_queryset(self):
         return Post.objects.all()
@@ -47,7 +47,7 @@ class PostRerieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 class PostCommentListView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [AllowAny, ]
-    pagination_class = CustomPagination
+    pagination_class = CostomPagination
 
     def get_queryset(self):
         post_id = self.kwargs.get('pk')
