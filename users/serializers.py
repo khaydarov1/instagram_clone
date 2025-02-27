@@ -234,9 +234,6 @@ class LoginSerializer(TokenObtainPairSerializer):
             )
         return users.first()
 
-
-
-
 class LoginRefreshSerializer(TokenRefreshSerializer):
 
     def validate(self, attrs):
