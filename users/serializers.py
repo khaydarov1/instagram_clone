@@ -234,25 +234,7 @@ class LoginSerializer(TokenObtainPairSerializer):
             )
         return users.first()
 
-    def validate(self, data):
-        self.auth_validate(data)
-        if self.user.auth_status not in [DONE, PHOTO_DONE]:
-            raise PermissionDenied("Siz login qila olmaysiz. Ruxsatingiz yoq")
-        data = self.user.token()
-        data['auth_status'] = self.user.auth_status
-        data['full_name'] = self.user.full_name
-        return data
 
-    @staticmethod
-    def get_user(**kwargs):
-        users = User.objects.filter(**kwargs)
-        if not users.exists():
-            raise ValidationError(
-                {
-                    "message": "No active account found"
-                }
-            )
-        return users.first()
 
 
 class LoginRefreshSerializer(TokenRefreshSerializer):
